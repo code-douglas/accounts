@@ -23,11 +23,23 @@ function operation () {
       if( action === 'Create account') {
         createAccount();
       }
+      if( action === 'Check balance') {
+        ;
+      }
+      if( action === 'Deposit') {
+        deposit();
+      }
+      if( action === 'Withdraw') {
+        ;
+      }
+      if( action === 'Exit') {
+        console.log(chalk.bgBlue.black('Thank you for using Accounts!'));
+        process.exit();
+      }
     })
     .catch((err) =>  console.error(err));
 }
 
-// Create Account: This function will be called when the user selects the option to create an account.
 function createAccount () {
   console.log(chalk.bgGreen.black('Congratulations! On choosing our bank.'));
   console.log(chalk.green('Define the options for creating an account:'));
@@ -73,6 +85,79 @@ function buildAccount () {
       operation();
     })
     .catch((err) =>  console.error(err));
+}
+
+function deposit() {
+  inquirer
+    .prompt([
+      {
+        name: 'accountName',
+        message: 'Enter the account name:',
+      },
+    ])
+    .then((answer) => {
+      const accountName = answer['accountName'];
+
+      if(!checkAccount(accountName)) {
+        return deposit();
+      }
+
+      inquirer
+        .prompt([
+          {
+            name: 'amount',
+            message: 'Enter the amount to deposit:',
+          }
+        ])
+        .then((answer) => {
+          const amount = parseFloat(answer['amount']);
+
+          addAmount(accountName, amount);
+          operation();
+        })
+        .catch((err) =>  console.error(err));
+    })
+    .catch((err) =>  console.error(err));
+}
+
+function checkAccount(accountName) {
+  if(!fs.existsSync(`accounts/${accountName}.json`)) {
+    console.error(
+      chalk.bgRed.black('Account does not exist!')
+    );
+    return false;
+  }
+  return true;
+}
+
+function addAmount(accountName, amount) {
+  const accountData = getAccount(accountName);
+
+  if(!amount) {
+    console.error(chalk.bgRed.black('An error occurred, try again'));
+    return deposit();
+  }
+
+  accountData.balance = parseFloat(amount) + parseFloat(accountData.balance);
+
+  fs.writeFileSync(
+    `accounts/${accountName}.json`,
+    JSON.stringify(accountData),
+    function(err) {
+      console.error(err);
+    }
+  );
+
+  console.log(chalk.bgGreen.black(`Deposit of ${amount}$ completed successfully!`));
+
+}
+function getAccount(accountName) {
+  const accountJSON = fs.readFileSync(`accounts/${accountName}.json`, {
+    enconding: 'utf8',
+    flag: 'r',
+  });
+
+  return JSON.parse(accountJSON);
 }
 
 operation();
