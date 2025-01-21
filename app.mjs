@@ -30,7 +30,7 @@ function operation () {
         deposit();
       }
       if( action === 'Withdraw') {
-        ;
+        withdraw();
       }
       if( action === 'Exit') {
         console.log(chalk.bgBlue.black('Thank you for using Accounts!'));
@@ -187,5 +187,74 @@ function getAccountBalance() {
     })
     .catch((err) => console.error(err));
 };
+
+function withdraw() {
+  inquirer
+    .prompt([
+      {
+        name: 'accountName',
+        message: 'Enter the account name:',
+      }
+    ])
+    .then((answer) => {
+      const accountName = answer['accountName'];
+
+      if(!checkAccount(accountName)) {
+        return withdraw();
+      }
+
+      inquirer
+        .prompt([
+          {
+            name: 'amount',
+            message: 'How much do you want to withdraw:',
+          }
+        ])
+        .then((answer) => {
+          const amountAccount = answer['amount'];
+          removeAmount(accountName, amountAccount);
+
+        })
+        .catch((err) =>  console.error(err));
+    })
+    .catch((err) => console.error(err));
+};
+
+function removeAmount(accountName, amountAccount) {
+  const accountData = getAccount(accountName);
+
+  if(!amountAccount) {
+    console.log(
+      chalk.bgRed.black('An error occurred, try again later.')
+    );
+    return withdraw();
+  }
+
+  if(accountData.balance < amountAccount) {
+    console.log(
+      chalk.bgRed.black('Unavailable value!')
+    );
+    return withdraw();
+  }
+
+  accountData.balance = parseFloat(accountData.balance) - parseFloat(amountAccount);
+
+  fs.writeFileSync(
+    `accounts/${accountName}.json`,
+    JSON.stringify(accountData),
+    function(err) {
+      console.error(err);
+    }
+  );
+
+  console.log(
+    chalk.bgGreen.black(
+      `The withdrawal in the amount of ${amountAccount} was made successfully.`
+    )
+  );
+
+  operation();
+
+}
 
 operation();
