@@ -24,7 +24,7 @@ function operation () {
         createAccount();
       }
       if( action === 'Check balance') {
-        ;
+        getAccountBalance();
       }
       if( action === 'Deposit') {
         deposit();
@@ -38,14 +38,14 @@ function operation () {
       }
     })
     .catch((err) =>  console.error(err));
-}
+};
 
 function createAccount () {
   console.log(chalk.bgGreen.black('Congratulations! On choosing our bank.'));
   console.log(chalk.green('Define the options for creating an account:'));
 
   buildAccount();
-}
+};
 
 function buildAccount () {
   inquirer
@@ -85,7 +85,7 @@ function buildAccount () {
       operation();
     })
     .catch((err) =>  console.error(err));
-}
+};
 
 function deposit() {
   inquirer
@@ -118,7 +118,7 @@ function deposit() {
         .catch((err) =>  console.error(err));
     })
     .catch((err) =>  console.error(err));
-}
+};
 
 function checkAccount(accountName) {
   if(!fs.existsSync(`accounts/${accountName}.json`)) {
@@ -128,7 +128,7 @@ function checkAccount(accountName) {
     return false;
   }
   return true;
-}
+};
 
 function addAmount(accountName, amount) {
   const accountData = getAccount(accountName);
@@ -150,7 +150,8 @@ function addAmount(accountName, amount) {
 
   console.log(chalk.bgGreen.black(`Deposit of ${amount}$ completed successfully!`));
 
-}
+};
+
 function getAccount(accountName) {
   const accountJSON = fs.readFileSync(`accounts/${accountName}.json`, {
     enconding: 'utf8',
@@ -158,6 +159,33 @@ function getAccount(accountName) {
   });
 
   return JSON.parse(accountJSON);
-}
+};
+
+function getAccountBalance() {
+  inquirer
+    .prompt([
+      {
+        name: 'accountName',
+        message: 'Enter the account name:',
+      }
+    ])
+    .then((answer) => {
+      const accountName = answer['accountName'];
+
+      if(!checkAccount(accountName)) {
+        return getAccountBalance();
+      }
+
+      const accountData = getAccount(accountName);
+
+      console.log(chalk.bgBlue.black(
+        `The balance in your account is: $${accountData.balance}`
+      ));
+
+      operation();
+
+    })
+    .catch((err) => console.error(err));
+};
 
 operation();
