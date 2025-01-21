@@ -255,6 +255,6 @@ function removeAmount(accountName, amountAccount) {
 
   operation();
 
-}
+};
 
 operation();
